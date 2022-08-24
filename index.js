@@ -9,10 +9,13 @@ const socket = new WebSocket(process.env.SO_WSS_ENDPOINT, {
   },
 });
 
+/**
+ * Handle chatops socket events.
+ * Chatops has only one event called 'message' so others option not available.
+ */
 socket.on('message', function message(data) {
   const event = JSON.parse(data.toString());
   if (event.event === 'posted') {
-    console.log(new Date(), event.event, data.toString());
     forward(data);
   }
 });
@@ -22,11 +25,16 @@ socket.on('message', function message(data) {
  * @param data
  */
 function forward(data) {
-  axios.post(process.env.WEBHOOK, {
+  console.log(new Date(), data.toString());
+  axios.post(`${process.env.WEBHOOK}?bot_id=${process.env.SO_BOT_ID}`, {
     payload: data.toString(),
   }, {
     headers: {
       Authorization: `Bearer ${process.env.WEBHOOK_TOKEN}`
     }
+  }).then((res) => {
+    console.log(new Date(), JSON.stringify(res.data));
+  }).catch((e) => {
+    console.log(new Date(), e.message);
   })
 }
